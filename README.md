@@ -37,8 +37,8 @@ NEW_REPOSITORY_URL="git@github.com:daisuke6106/${NEW_REPOSITORY_NAME}.git"
 # クローン->Push
 git clone ${UPSTREAM_REPOSITORY_URL} ${NEW_REPOSITORY_NAME}
 cd ${NEW_REPOSITORY_NAME}
-git remote add upstream ${UPSTREAM_REPOSITORY_URL}
-git remote add origin   ${NEW_REPOSITORY_URL}
+git remote add     upstream ${UPSTREAM_REPOSITORY_URL}
+git remote set-url origin   ${NEW_REPOSITORY_URL}
 git branch -M main
 git push -u origin main
 ```
