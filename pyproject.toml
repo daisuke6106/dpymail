@@ -1,5 +1,5 @@
 [project]
-name = "python_package_project_template"
+name = "dpymail"
 version = "0.0.1"
 authors = [
   { name="daisuke6106", email="daisuke6106@gmail.com" },

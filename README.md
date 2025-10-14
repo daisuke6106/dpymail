@@ -1,5 +1,5 @@
-# Pythonパッケージテンプレート
-本プロジェクトはパッケージングできるpythonプロジェクトを作成するときに使用するテンプレートです。
+# dpymail
+本プロジェクトはPythonにてメールを操作するPythonパッケージです。
 
 ## Build
 以下にてビルドを実施
@@ -12,13 +12,13 @@
 以下にてインストールを実施
 
 ```
-pip install python_package_project_template-0.0.1-py3-none-any.whl
+pip install dpymail-0.0.1-py3-none-any.whl
 ```
 
 ## How to use
 
 ```
-from example_package import example
+from dpymail import example
 example.add_one(1)
 ```
 
@@ -29,7 +29,7 @@ example.add_one(1)
 GitHubにて空のリポジトリ作成
 
 # 変数定義
-UPSTREAM_REPOSITORY_NAME="python_package_project_template"
+UPSTREAM_REPOSITORY_NAME="dpymail"
 UPSTREAM_REPOSITORY_URL="git@github.com:daisuke6106/${UPSTREAM_REPOSITORY_NAME}.git"
 NEW_REPOSITORY_NAME="NewRepName"
 NEW_REPOSITORY_URL="git@github.com:daisuke6106/${NEW_REPOSITORY_NAME}.git"
