@@ -1,21 +1,54 @@
-import poplib
-
 class DPyMailException(Exception):
-    def __init__(self, message:str, org_exception:Exception = None):
+    """DPyMailの基本例外クラス
+    """
+
+    def __init__(self, message: str, org_exception: Exception = None):
+        """コンストラクタ
+        Args:
+            message (str): 例外メッセージ
+            org_exception (Exception, optional): 元例外情報. Defaults to None.
+        """
         super().__init__(message)
         self.org_exception = org_exception
+
 
 class MailServerConnectException(DPyMailException):
-    def __init__(self, message:str, org_exception:Exception = None):
+    """メールサーバ接続例外クラス
+    """
+
+    def __init__(self, message: str, org_exception: Exception = None):
+        """コンストラクタ
+        Args:
+            message (str): 例外メッセージ
+            org_exception (Exception, optional): 元例外情報. Defaults to None.
+        """
         super().__init__(message)
         self.org_exception = org_exception
+
 
 class MailSearchException(DPyMailException):
-    def __init__(self, message:str, org_exception:Exception = None):
+    """メール検索例外クラス
+    """
+
+    def __init__(self, message: str, org_exception: Exception = None):
+        """コンストラクタ
+        Args:
+            message (str): 例外メッセージ
+            org_exception (Exception, optional): 元例外情報. Defaults to None.
+        """
         super().__init__(message)
         self.org_exception = org_exception
 
+
 class MailLoadException(DPyMailException):
-    def __init__(self, message:str, org_exception:Exception = None):
+    """メールロード例外クラス
+    """
+
+    def __init__(self, message: str, org_exception: Exception = None):
+        """コンストラクタ
+        Args:
+            message (str): 例外メッセージ
+            org_exception (Exception, optional): 元例外情報. Defaults to None.
+        """
         super().__init__(message)
         self.org_exception = org_exception

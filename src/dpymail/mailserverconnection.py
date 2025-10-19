@@ -177,6 +177,10 @@ class IMAPSSLConnection(MailServerConnection):
         pass
 
 
-class MailCheckPoint:
-    def __init__(self, mailserverconnection: MailServerConnection):
-        pass
+IMAP_SERVER = "imap.gmail.com"
+IMAP_PORT = 993
+USERNAME = "daisuke6106@gmail.com"
+APP_PASSWORD = "obrjizfnqbitczcn"
+mailserverconnection = IMAPSSLConnection(
+    IMAP_SERVER, IMAP_PORT, USERNAME, APP_PASSWORD)
+mailserverconnection.lastest_mail_by_count(10)

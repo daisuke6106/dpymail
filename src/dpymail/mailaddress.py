@@ -11,30 +11,30 @@ class MailAddress:
             mailaddress (str): メールアドレス
             name (str): 名称
         """
-        self.mailaddress = mailaddress
+        self._mailaddress = mailaddress
 
         if name:
-            self.has_name = True
-            self.name = name
+            self._has_name = True
+            self._name = name
         else:
-            self.has_name = False
-            self.name = ""
+            self._has_name = False
+            self._name = ""
 
         # メールアドレスをユーザ部、ドメイン部で分割して保持
         user, domain = mailaddress.split("@", 1)
-        self.mailaddress_user_area = user
-        self.mailaddress_dmail_area = domain
+        self._mailaddress_user_area = user
+        self._mailaddress_dmail_area = domain
 
         # ユーザ部にプラスアドレスであるか確認する
         if "+" in user:
-            self.is_plusaddress = True
+            self._is_plusaddress = True
             base_user, tag = user.split("+", 1)
-            self.mailaddress_user_plus_bsae_user_area = base_user
-            self.mailaddress_user_plus_tag_area = tag
+            self._mailaddress_user_plus_bsae_user_area = base_user
+            self._mailaddress_user_plus_tag_area = tag
         else:
-            self.is_plusaddress = False
-            self.mailaddress_user_plus_bsae_user_area = user
-            self.mailaddress_user_plus_tag_area = ""
+            self._is_plusaddress = False
+            self._mailaddress_user_plus_bsae_user_area = user
+            self._mailaddress_user_plus_tag_area = ""
 
     def get_mailaddress(self) -> str:
         """メールアドレスを取得する
@@ -42,7 +42,7 @@ class MailAddress:
         Returns:
             str: メールアドレス
         """
-        return self.mailaddress
+        return self._mailaddress
 
     def has_name(self) -> bool:
         """名称があるかの判定結果を返却する
@@ -50,7 +50,7 @@ class MailAddress:
         Returns:
             bool: True：有り、False：無し
         """
-        return self.has_name
+        return self._has_name
 
     def get_name(self) -> str:
         """名称を取得する
@@ -60,7 +60,7 @@ class MailAddress:
         Returns:
             str: 名称
         """
-        return self.name
+        return self._name
 
     def get_mailaddress_user_area(self) -> str:
         """メールアドレスのユーザ部を取得する
@@ -68,7 +68,7 @@ class MailAddress:
         Returns:
             str: メールアドレスのユーザ部
         """
-        return self.mailaddress_user_area
+        return self._mailaddress_user_area
 
     def is_plusaddress(self) -> bool:
         """メールアドレスがプラスアドレスかの判定結果を返却する
@@ -76,7 +76,7 @@ class MailAddress:
         Returns:
             bool: True：有り、False：無し
         """
-        return self.is_plusaddress
+        return self._is_plusaddress
 
     def get_plusaddresss_basename(self) -> str:
         """プラスアドレスのベース名（+の前半部）を返却する
@@ -86,7 +86,7 @@ class MailAddress:
         Returns:
             str: プラスアドレスのベース名
         """
-        return self.mailaddress_user_plus_bsae_user_area
+        return self._mailaddress_user_plus_bsae_user_area
 
     def get_plusaddress_tagname(self) -> str:
         """プラスアドレスのタグ名（+の後半部）を返却する
@@ -96,7 +96,18 @@ class MailAddress:
         Returns:
             str: プラスアドレスのタグ名
         """
-        return self.mailaddress_user_plus_tag_area
+        return self._mailaddress_user_plus_tag_area
 
     def get_mailaddress_dmain_area(self) -> str:
-        return self.mailaddress_dmail_area
+        """メールアドレスのドメイン部を取得する
+
+        Returns:
+            str: メールアドレスのドメイン部
+        """
+        return self._mailaddress_dmail_area
+
+    def __str__(self):
+        if self.has_name():
+            return f"{self.get_name()} <{self.get_mailaddress()}>"
+        else:
+            return f"{self.get_mailaddress()}"

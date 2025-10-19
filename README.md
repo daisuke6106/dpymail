@@ -18,8 +18,12 @@ pip install dpymail-0.0.1-py3-none-any.whl
 ## How to use
 
 ```
-from dpymail import example
-example.add_one(1)
+IMAP_SERVER = "imap.gmail.com"
+IMAP_PORT = 993
+USERNAME = "xxxxxxxxxx@gmail.com"
+APP_PASSWORD = "xxxxxxxxxx"
+mailserverconnection = IMAPSSLConnection(IMAP_SERVER, IMAP_PORT, USERNAME, APP_PASSWORD)
+mailserverconnection.lastest_mail()
 ```
 
 ## Clone this
