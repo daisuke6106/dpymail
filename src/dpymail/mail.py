@@ -1,5 +1,6 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 import email
+from datetime import datetime
 from email.header import decode_header
 from email.utils import getaddresses
 from html.parser import HTMLParser
@@ -21,6 +22,111 @@ class Mail(ABC):
         """
         self._mailserveronnection = mailserveronnection
 
+    @abstractmethod
+    def get_from_mailaddress(self) -> MailAddress:
+        """送信元メールアドレスを取得する
+
+        Returns:
+            MailAddress: 送信元メールアドレス
+        """
+        pass
+
+    @abstractmethod
+    def get_to_mailaddress(self) -> list[MailAddress]:
+        """送信先メールアドレスを取得する
+
+        Returns:
+            list[MailAddress]: 送信先メールアドレス一覧
+        """
+        pass
+
+    @abstractmethod
+    def get_reception_datetime(self) -> datetime:
+        """受信日時を取得する
+
+        Returns:
+            str: 受信日時
+        """
+        pass
+
+    @abstractmethod
+    def get_subject(self) -> str:
+        """件名を取得する
+
+        Returns:
+            str: 件名
+        """
+        pass
+
+    @abstractmethod
+    def get_mail_body(self) -> "MailBody":
+        """メール本文を取得する
+
+        Returns:
+            MailBody: メール本文インスタンス
+        """
+        pass
+
+    def save_to_file(self, directory: str) -> str:
+        """メールをファイルに保存する
+
+        Args:
+            directory (str): 保存先ディレクトリパス
+
+        Returns:
+            str: 保存したファイルパス
+        """
+        import os
+
+        file_name = self._get_file_name()
+        file_path = os.path.join(directory, file_name)
+
+        with open(file_path, "wb") as f:
+            f.write(self.get_mail_binary_data())
+
+        return file_path
+
+    @abstractmethod
+    def get_mail_binary_data(self) -> bytes:
+        """メールのバイナリデータを取得する
+
+        Returns:
+            bytes: メールのバイナリデータ
+        """
+        pass
+
+    def _get_file_name(self) -> str:
+        """メールを保存する際のファイル名を取得する
+
+        Returns:
+            str: メール保存用ファイル名
+        """
+        date_str = self.get_reception_datetime().strftime("%Y%m%d_%H%M%S")
+        subject_str = self._get_file_name_safe_subject()
+        file_name = f"{date_str}_{subject_str}.eml"
+        return file_name
+
+    def _get_file_name_safe_subject(self) -> str:
+        """件名をファイル名として安全な形式に変換して返却する
+
+        Returns:
+            str: ファイル名として安全な件名文字列
+        """
+        subject = self.get_subject()
+        # ファイル名として使用できない文字を置換
+        invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
+        for char in invalid_chars:
+            subject = subject.replace(char, '_')
+        return subject
+
+    def __str__(self) -> str:
+        """送信元メールアドレス、送信先メールアドレス、受信日時、件名を文字列化して返却する
+
+        Returns:
+            str: メール情報文字列
+        """
+        return f"From: {self.get_from_mailaddress()},To: {', '.join([str(addr) for addr in self.get_to_mailaddress()])}, Date: {self.get_reception_datetime()}, Subject: {self.get_subject()}"
+
 
 class IMAPMail(Mail):
     """IMAPメールを表すメールクラス
@@ -41,26 +147,35 @@ class IMAPMail(Mail):
         self._msg_data = msg_data
 
         # メールオブジェクトに変換
-        msg = email.message_from_bytes(msg_data[0][1])
+        self._mail_obj = email.message_from_bytes(self._msg_data[0][1])
 
         # 送信元メールアドレス取得
         self._from_address = self.__get_addresses(
-            self.__decode_mime_header(msg.get("From")))
+            self.__decode_mime_header(self._mail_obj.get("From")))
 
         # 送信先メールアドレス取得
         self._to_address = self.__get_addresses(
-            self.__decode_mime_header(msg.get("To")))
+            self.__decode_mime_header(self._mail_obj.get("To")))
+
+        # 受信日時取得
+        # 例: "INTERNALDATE "12-Feb-2024 10:20:30 +0900""をパースし、datetimeオブジェクトに変換
+        # INTERNALDATEはmsg_dataの2番目に含まれる
+        # タイムゾーンはローカルタイムゾーンに変換する
+        self._reception_datetime_str = self._msg_data[1].decode().split(
+            'INTERNALDATE')[-1].strip(" )\"")
+        self._reception_datetime = datetime.strptime(
+            self._reception_datetime_str, "%d-%b-%Y %H:%M:%S %z").astimezone(tz=None)
 
         # 件名取得
-        self._subject = self.__decode_mime_header(msg["Subject"])
+        self._subject = self.__decode_mime_header(self._mail_obj["Subject"])
 
         # 本文取得
         self._body_org = None
 
         # マルチパートメールの場合
-        if msg.is_multipart():
+        if self._mail_obj.is_multipart():
             self._is_multipart = True
-            for part in msg.walk():
+            for part in self._mail_obj.walk():
                 self._content_type = part.get_content_type()
                 content_disposition = str(part.get("Content-Disposition"))
                 # 添付ファイルでないテキスト部分を探す
@@ -72,9 +187,9 @@ class IMAPMail(Mail):
         # シングルパートメールの場合
         else:
             self._is_multipart = False
-            self._content_type = msg.get_content_type()
-            self._body_org = msg.get_payload(decode=True).decode(
-                msg.get_content_charset() or "utf-8", errors="ignore")
+            self._content_type = self._mail_obj.get_content_type()
+            self._body_org = self._mail_obj.get_payload(decode=True).decode(
+                self._mail_obj.get_content_charset() or "utf-8", errors="ignore")
 
         # 本文オブジェクト作成
         if self._body_org:
@@ -87,20 +202,7 @@ class IMAPMail(Mail):
         else:
             self._mail_body = PlainTextMailBody("text/plain", "")
 
-        # if self._body_org:
-        #     print(f"送信元: {self._from_address[0]}")
-        #     print(f"送信先: {self._to_address[0]}")
-        #     print(f"件名: {self._subject}")
-        #     print(f"本文（先頭100文字）:\n{self.get_mail_body()}...")
-        #     print(f"content-type:{self._content_type}")
-        #     print(f"isultipart:{self._is_multipart}")
-        # else:
-        #     print(f"送信元: {self._from_address[0]}")
-        #     print(f"送信先: {self._to_address[0]}")
-        #     print(f"件名: {self._subject}")
-        #     print("本文が見つかりません")
-
-    def from_address(self) -> MailAddress:
+    def get_from_mailaddress(self) -> MailAddress:
         """送信元メールアドレスを取得する
 
         Returns:
@@ -108,13 +210,21 @@ class IMAPMail(Mail):
         """
         return self._from_address[0] if self._from_address else None
 
-    def to_address(self) -> list[MailAddress]:
+    def get_to_mailaddress(self) -> list[MailAddress]:
         """送信先メールアドレスを取得する
 
         Returns:
             list[MailAddress]: 送信先メールアドレス一覧
         """
         return self._to_address
+
+    def get_reception_datetime(self) -> datetime:
+        """受信日時を取得する
+
+        Returns:
+            str: 受信日時
+        """
+        return self._reception_datetime
 
     def get_subject(self) -> str:
         """件名を取得する
@@ -131,6 +241,14 @@ class IMAPMail(Mail):
             MailBody: メール本文インスタンス
         """
         return self._mail_body
+
+    def get_mail_binary_data(self) -> bytes:
+        """メールのバイナリデータを取得する
+
+        Returns:
+            bytes: メールのバイナリデータ
+        """
+        return self._mail_obj.as_bytes()
 
     def __decode_mime_header(self, value) -> str:
         """MIMEヘッダーをデコードｊ
